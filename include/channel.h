@@ -48,6 +48,34 @@ class Channel {
             cv_not_empty.notify_one();
             return true;
         }
+
+        // Pop a value from the channel.
+        // Returns false when teh channel is closed and empty.
+        bool pop(T& out) {
+            std::unique_lock<std::mutex> lock(mtx_);
+            cv_not_empty.wait(lock, [&] {
+                return closed_ || !queue_.empty();
+            });
+
+            if (queue_.empty()) {
+                // closed_ must be true here
+                return false;
+            }
+
+            out = std::move(queue_.front());
+            queue_.pop();
+            return true;
+        }
+
+        // Close the channel. After this:
+        // - all waiting pops wake up
+        // - future pushes fail (return false)
+        void close() {
+            std::lock_guard<std::mutex> lock(mtx_);
+            closed_ = true;
+            cv_not_empty_.notify_all();
+        }
+
     private:
         std::queue<T> queue_;
         bool closed_;
