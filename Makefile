@@ -1,5 +1,5 @@
 CXX      := g++
-CXXFLAGS := -std=c++17 -Wall -Wextra -O2 -pthread
+CXXFLAGS := -std=c++17 -Wall -Wextra -Werror -O2 -pthread
 
 SRCDIR 	 := src
 INCDIR	 := include
