@@ -46,3 +46,8 @@ bool is_valid_prefix(const std::vector<int>& seq, const NS1D0Config& cfg) {
 
     return true;
 }
+
+static bool is_complete_valid_sequence(const std::vector<int>& seq,
+                                       const NS1D0Config& cfg) {
+    if (static_cast<int>)
+}
