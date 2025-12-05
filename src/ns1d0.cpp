@@ -170,7 +170,82 @@ static bool is_complete_valid_sequence(const std::vector<int>& seq,
 // DFS Search
 static void dfs_search(std::vector<int>& currentSeq,
                        const NS1D0Config& cfg,
-                       std::vector< std::vector<int> >& resultsChannel,
+                       Channel<std::vector<int>>& resultChannel,
                        std::atomic<std::size_t>& nodesExpanded) {
-    
+
+    nodesExpanded.fetch_add(1, std::memory_order_relaxed);
+
+    if (!is_valid_prefix(currentSeq, cfg)) {
+        return; // prune
+    }
+
+    if (is_complete_valid_sequence(currentSeq, cfg)) {
+        resultChannel.push(currentSeq);
+        return;
+    }
+
+    // Still need more elements; try all candidates 0..n-1.
+    for (int candidate = 0; candidate < cfg.n; ++candidate) {
+        // Enforce "1 only at the very end" here as well (extra safety).
+        if (candidate == 1 &&
+            static_cast<int>(currentSeq.size()) < cfg.targetLength - 1) {
+            continue;
+        }
+
+        // Uniqueness + range + other rules will be enforced by is_valid_prefix,
+        // but skipping obvious duplicates early is a cheap optimization.
+        if (std::find(currentSeq.begin(), currentSeq.end(), candidate) != currentSeq.end()) {
+            continue;
+        }
+
+        currentSeq.push_back(candidate);
+        dfs_search(currentSeq, cfg, resultChannel, nodesExpanded);
+        currentSeq.pop_back();
+    }
+}
+
+void search_worker(int workerIndex,
+                   int workerCount,
+                   const NS1D0Config& cfg,
+                   Channel<std::vector<int>>& resultChannel,
+                   std::atomic<std::size_t>& nodesExpanded) {
+    std::vector<int> secondCandidates;
+
+    for (int v = 0; v < cfg.n; ++v) {
+        if (v == 0) continue;             // already at position 0
+        if (v == cfg.forbidden) continue; // Rule 4
+        if (v == 1 && cfg.targetLength > 2) {
+            // Don't place 1 too early.
+            continue;
+        }
+        secondCandidates.push_back(v);
+    }
+
+    for (std::size_t i = 0; i < secondCandidates.size(); ++i) {
+        if (static_cast<int>(i % workerCount) != workerIndex) continue;
+
+        std::vector<int> seq;
+        seq.reserve(cfg.targetLength);
+        seq.push_back(0);                  // Rule 2
+        seq.push_back(secondCandidates[i]);
+
+        dfs_search(seq, cfg, resultChannel, nodesExpanded);
+    }
+}
+
+void output_thread(Channel<std::vector<int>>& resultChannel,
+                   std::ostream& out,
+                   std::atomic<std::size_t>& sequencesFound) {
+    std::vector<int> seq;
+    while (resultChannel.pop(seq)) {
+        sequencesFound.fetch_add(1, std::memory_order_relaxed);
+
+        for (std::size_t i = 0; i < seq.size(); ++i) {
+            out << seq[i];
+            if (i + 1 < seq.size()) {
+                out << ", ";
+            }
+        }
+        out << '\n';
+    }
 }
