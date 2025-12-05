@@ -35,7 +35,7 @@ class Channel {
                 return false;
             }
             queue_.push(value);
-            cv_not_empty_.notfiy_one();
+            cv_not_empty.notify_one();
             return true;
         }
 
@@ -73,12 +73,12 @@ class Channel {
         void close() {
             std::lock_guard<std::mutex> lock(mtx_);
             closed_ = true;
-            cv_not_empty_.notify_all();
+            cv_not_empty.notify_all();
         }
 
     private:
         std::queue<T> queue_;
         bool closed_;
         std::mutex mtx_;
-        std::condition_variable cv_not_empty_;
+        std::condition_variable cv_not_empty;
 };
