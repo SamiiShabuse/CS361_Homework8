@@ -15,3 +15,25 @@ OBJECTS  := $(SOURCES:.cpp=.o)
 
 all: $(TARGET)
 
+$(TARGET): $(OBJECTS)
+	mkdir -p $(BINDIR)
+	$(CXX) $(CXXFLAGS) -o $@ $^
+
+$(SRCDIR)/%.o: $(SRCDIR)/%.cpp
+	$(CXX) $(CXXFLAGS) -I$(INCDIR) -c $< -o $@
+
+test7: $(TARGET)
+	$(TARGET) 7 seq7.txt
+
+test9: $(TARGET)
+	$(TARGET) 9 seq9.txt
+
+test11: $(TARGET)
+	$(TARGET) 11 seq11.txt
+
+test13: $(TARGET)
+	$(TARGET) 13 seq13.txt
+
+clean:
+	rm -f $(SRCDIR)/*.o
+	rm -rf $(BINDIR)
