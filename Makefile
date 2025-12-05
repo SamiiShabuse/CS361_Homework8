@@ -37,3 +37,4 @@ test13: $(TARGET)
 clean:
 	rm -f $(SRCDIR)/*.o
 	rm -rf $(BINDIR)
+	rm -rf *.txt
