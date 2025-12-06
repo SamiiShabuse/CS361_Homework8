@@ -1,6 +1,6 @@
 # CS361 - Homework 8
 - Name: Samii Shabuse
-- Email:sus24@drexel.edu
+- Email: sus24@drexel.edu
 - Professor: Mark Boady
 
 # Overview
