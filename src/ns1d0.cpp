@@ -3,16 +3,22 @@
 #include <algorithm>
 #include <vector>
 
-// Helpers: modular arithemtic
-
+/**
+ * @brief Compute a modulo n, ensuring a non-negative result.
+ * 
+ * @param a The integer to be reduced.
+ * @param n The modulus.
+ * 
+ * @return int 
+ * 
+ * @details This function ensures that the result of the modulo operation is always non-negative,
+ * even if the input integer 'a' is negative. This is useful in contexts where a negative
+ * modulo result would be undesirable or incorrect.
+ */
 static int mod(int a, int n) {
     int r = a % n;
     return r < 0 ? r + n : r;
 }
-
-
-// Rule helpers 
-
 
 /**
  *  Rule 1 (length) is just two general checks:
@@ -21,10 +27,19 @@ static int mod(int a, int n) {
  * 
  * So we can keep that logic in is_valid_prefix and is_complete_valid_sequence for now
  */
-void rule1();
 
-// Extra Rule: uniqueness & range requirement
-// "Ordered list of unique integers in [0, n-1]"
+
+
+/**
+ * @brief Check if the sequence contains unique integers within the range [0, n-1].
+ * 
+ * @param seq The sequence of integers to check.
+ * @param cfg Configuration containing the range limit 'n'.
+ * 
+ * @return true If all integers are unique and within the range [0, n-1].
+ * 
+ * @details This function checks that all integers in the sequence are unique and fall within the specified range [0, n-1]. 
+ */
 static bool rule_unique_and_in_range(const std::vector<int>& seq,
                                      const NS1D0Config& cfg) {
     const int n = cfg.n;
@@ -39,17 +54,29 @@ static bool rule_unique_and_in_range(const std::vector<int>& seq,
 }
 
 
-// Rule 2: sequence must start with 0
+/**
+ * @brief Check if the sequence starts with zero.
+ * 
+ * @param seq The sequence of integers to check.
+ * @return true If the sequence starts with zero.
+ * 
+ * @details This function checks if the first element of the sequence is zero.
+ */
 static bool rule2_starts_with_zero(const std::vector<int>& seq) {
     return !seq.empty() && seq[0] == 0;
 };
 
+
 /**
- * Rule 3: must end in 1.
- * For *complete* sequences only, last element mus be 1.
- * For prefixes, we must nesure we don't place 1 too early, ecause
- * all the values are unique. If 1 appears before teh last position, we cannot
- * place it at the end later.
+ * @brief Check if the sequence ends with one (for complete sequences) or does not contain one prematurely (for prefixes).
+ * 
+ * @param seq The sequence of integers to check.
+ * @param cfg Configuration containing the target length.
+ * 
+ * @return true If the sequence satisfies the rule.
+ * 
+ * @details For complete sequences, the last element must be 1.
+ * For prefixes, the sequence must not contain 1 before the last position to ensure it can be placed at the end later.
  */
 static bool rule3_one_at_end(const std::vector<int>& seq, const NS1D0Config& cfg) {
     if (static_cast<int>(seq.size()) == cfg.targetLength) {
@@ -64,7 +91,14 @@ static bool rule3_one_at_end(const std::vector<int>& seq, const NS1D0Config& cfg
 } ;
 
 /**
- * Rule 4: cannot include ceil(n/2)
+ * @brief Check if the sequence does not contain the forbidden value.
+ * 
+ * @param seq The sequence of integers to check.
+ * @param cfg Configuration containing the forbidden value.
+ * 
+ * @return true If the sequence does not contain the forbidden value.
+ * 
+ * @details This function checks if the sequence contains the forbidden value specified in the configuration.
  */
 static bool rule4_no_forbidden(const std::vector<int>& seq, const NS1D0Config& cfg) {
     for (int v : seq) {
@@ -74,14 +108,14 @@ static bool rule4_no_forbidden(const std::vector<int>& seq, const NS1D0Config& c
 } ;
 
 /**
- * Rule 5: For any 1 < x < n you can have either x or (1-x mod n) but not both.
- *
- * Implementation idea:
- *  - Mark which values appear in the sequence.
- *  - For each value v>1, compute partner = (1 - v) mod n.
- *  - If both v and partner are present in the sequence → invalid.
- *
- * Note: v = 0 or v = 1 are ignored for this rule (as in the spec).
+ * @brief Check if the sequence satisfies the pair exclusion rule.
+ * 
+ * @param seq The sequence of integers to check.
+ * @param cfg Configuration containing the range limit 'n'.
+ * 
+ * @return true If the sequence satisfies the pair exclusion rule.
+ * 
+ * @details For any 1 < x < n, the sequence can have either x or (1 - x) mod n, but not both.
  */
 static bool rule5_pair_exclusion(const std::vector<int>& seq, const NS1D0Config& cfg) {
     const int n = cfg.n;
@@ -101,22 +135,16 @@ static bool rule5_pair_exclusion(const std::vector<int>& seq, const NS1D0Config&
 } ;
 
 /**
- * Rule 6: differences between consecutive elements.
- *
- * Define differences d_k = (a_k - a_{k-1}) mod n.
+ * @brief Check if the sequence satisfies the unique differences pairs rule.
+ * 
+ * @param seq The sequence of integers to check.
+ * @param cfg Configuration containing the range limit 'n'.
+ * 
+ * @return true If the sequence satisfies the unique differences pairs rule.
+ * 
+ * @details Define differences d_k = (a_k - a_{k-1}) mod n.
  * For each j = 1..n-1, only one of {j, -j mod n} may appear as a difference,
  * and each such pair may appear at most once.
- *
- * Implementation idea:
- *  - For each difference d, compute its "pair representative":
- *        neg = (-d) mod n = n-d
- *        rep = min(d, neg)
- *  For example (n=7):
- *      d=2 or d=5 both map to rep=2 (pair {2,5})
- *      d=3 or d=4 both map to rep=3 (pair {3,4})
- *      d=1 or d=6 both map to rep=1 (pair {1,6})
- *  - Maintain an array usedPair[0..n-1]; if rep has been seen before, rule 6
- *    is violated. 
  */
 static bool rule6_differences_unique_pairs(const std::vector<int>& seq, const NS1D0Config& cfg) {
     const int n = cfg.n;
@@ -137,7 +165,16 @@ static bool rule6_differences_unique_pairs(const std::vector<int>& seq, const NS
     return true;
 } ;
 
-// Check whether a *prefix* of a sequence is valid so far.
+/**
+ * @brief Check whether a *prefix* of a sequence is valid so far.
+ * 
+ * @param seq The sequence of integers to check.
+ * @param cfg Configuration containing the target length and other parameters.
+ * 
+ * @return true If the prefix is valid according to all rules.
+ * 
+ * @details This function checks if the given sequence prefix satisfies all the rules defined in the configuration.
+ */
 bool is_valid_prefix(const std::vector<int>& seq, const NS1D0Config& cfg) {
     if (seq.empty()) {
         return false;
@@ -158,7 +195,18 @@ bool is_valid_prefix(const std::vector<int>& seq, const NS1D0Config& cfg) {
 
     return true;
 }
-// Check whether a *complete* sequence is valid.
+
+
+/**
+ * @brief Check whether a *complete* sequence is valid.
+ * 
+ * @param seq The sequence of integers to check.
+ * @param cfg Configuration containing the target length and other parameters.
+ * 
+ * @return true If the sequence is complete and valid according to all rules.
+ * 
+ * @details This function checks if the given sequence is complete and satisfies all the rules defined in the configuration.
+ */
 static bool is_complete_valid_sequence(const std::vector<int>& seq,
                                        const NS1D0Config& cfg) {
     if (static_cast<int>(seq.size()) != cfg.targetLength) {
@@ -167,7 +215,18 @@ static bool is_complete_valid_sequence(const std::vector<int>& seq,
     return is_valid_prefix(seq, cfg);
 }
 
-// DFS Search
+/**
+ * @brief Perform a depth-first search to find valid sequences.
+ * 
+ * @param currentSeq The current sequence being constructed.
+ * @param cfg Configuration containing the target length and other parameters.
+ * @param resultChannel Channel to send valid sequences found.
+ * @param nodesExpanded Atomic counter for the number of nodes expanded during the search.
+ * 
+ * @return void
+ * 
+ * @details This function performs a depth-first search to find all valid sequences according to the rules defined in the configuration.
+ */
 static void dfs_search(std::vector<int>& currentSeq,
                        const NS1D0Config& cfg,
                        Channel<std::vector<int>>& resultChannel,
@@ -184,16 +243,16 @@ static void dfs_search(std::vector<int>& currentSeq,
         return;
     }
 
-    // Still need more elements; try all candidates 0..n-1.
+    // Still need more elements; try all candidates 0..n-1
     for (int candidate = 0; candidate < cfg.n; ++candidate) {
-        // Enforce "1 only at the very end" here as well (extra safety).
+        // Enforce "1 only at the very end" here as well (extra safety)
         if (candidate == 1 &&
             static_cast<int>(currentSeq.size()) < cfg.targetLength - 1) {
             continue;
         }
 
         // Uniqueness + range + other rules will be enforced by is_valid_prefix,
-        // but skipping obvious duplicates early is a cheap optimization.
+        // but skipping obvious duplicates early is a cheap optimization
         if (std::find(currentSeq.begin(), currentSeq.end(), candidate) != currentSeq.end()) {
             continue;
         }
@@ -204,6 +263,19 @@ static void dfs_search(std::vector<int>& currentSeq,
     }
 }
 
+/**
+ * @brief Worker function for searching valid sequences.
+ * 
+ * @param workerIndex The index of this worker thread.
+ * @param workerCount The total number of worker threads.
+ * @param cfg Configuration containing the target length and other parameters.
+ * @param resultChannel Channel to send valid sequences found.  
+ * @param nodesExpanded Atomic counter for the number of nodes expanded during the search.
+ * 
+ * @return void
+ * 
+ * @details This function is executed by each worker thread to search for valid sequences. 
+ */
 void search_worker(int workerIndex,
                    int workerCount,
                    const NS1D0Config& cfg,
@@ -215,7 +287,7 @@ void search_worker(int workerIndex,
         if (v == 0) continue;             // already at position 0
         if (v == cfg.forbidden) continue; // Rule 4
         if (v == 1 && cfg.targetLength > 2) {
-            // Don't place 1 too early.
+            // Don't place 1 too early
             continue;
         }
         secondCandidates.push_back(v);
@@ -233,6 +305,17 @@ void search_worker(int workerIndex,
     }
 }
 
+/**
+ * @brief Thread function for outputting valid sequences.
+ * 
+ * @param resultChannel Channel from which to receive valid sequences.
+ * @param out Output stream to write the sequences.
+ * @param sequencesFound Atomic counter for the number of sequences found.
+ * 
+ * @return void
+ * 
+ * @details This function runs in a separate thread to output valid sequences as they are found.
+ */
 void output_thread(Channel<std::vector<int>>& resultChannel,
                    std::ostream& out,
                    std::atomic<std::size_t>& sequencesFound) {
