@@ -7,6 +7,16 @@
 #include "../include/ns1d0.h"
 #include "../include/channel.h"
 
+/**
+ * @brief Entry point for the NS1D0 sequence search program.
+ * 
+ * @param argc Argument count.
+ * @param argv Argument vector.
+ * 
+ * @return int Exit status code.
+ * 
+ * @details This program searches for valid NS1D0 sequences based on the provided parameters.
+ */
 int main(int argc, char* argv[]) {
 
     // Input checkers
