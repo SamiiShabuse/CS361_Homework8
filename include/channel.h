@@ -1,9 +1,13 @@
 /**
- * TO give a generic channel with push pop and close
- * using a mutex and cv 
+ * @file include/channel.h
  * 
- * will cover thread safe queue, producer/consuemr,
- * and CSP style message passing
+ * @brief A simple multi-producer, multi-consumer channel implementation.
+ * 
+ * @section Overview
+ * 
+ * This channel provides thread-safe communication between multiple producers and consumers.
+ * It supports blocking push and pop operations, and can be closed to signal no more data will be sent.
+ * The goal to develop my own variation based on Professors.
  */
 
  #pragma once
@@ -12,12 +16,18 @@
  #include <mutex>
  #include <condition_variable>
 
- /**
-  * A Simple multi-producer, multi-consumer channel.
-  * A push(): blocks only to add capacity later
-  * pop(): blocks until there is a data or the chanell is closed
-  * close(): wakes all waiting ops; further pusheses are rejected
-  */
+/**
+ * @class Channel
+ * 
+ * @brief A thread-safe multi-producer, multi-consumer channel.
+ * 
+ * @tparam T The type of elements stored in the channel.
+ * 
+ * @return A Channel class that allows multiple threads to push and pop elements safely.
+ * 
+ * @details This class uses a std::queue to store elements, protected by a mutex and condition variable.
+ * It supports multiple producers and consumers, and allows the channel to be closed to signal no more data.
+ */
 template <typename T>
 class Channel {
     public: 
@@ -28,7 +38,7 @@ class Channel {
         Channel& operator =(const Channel&) = delete;
 
         // Push a value into the channel.
-        // Returns false if the channel is closd; true otherwise.
+        // Returns false if the channel is closed; true otherwise
         bool push(const T& value) {
             std::unique_lock<std::mutex> lock(mtx_);
             if (closed_) {
@@ -50,7 +60,7 @@ class Channel {
         }
 
         // Pop a value from the channel.
-        // Returns false when teh channel is closed and empty.
+        // Returns false when teh channel is closed and empty
         bool pop(T& out) {
             std::unique_lock<std::mutex> lock(mtx_);
             cv_not_empty.wait(lock, [&] {
@@ -75,7 +85,7 @@ class Channel {
             closed_ = true;
             cv_not_empty.notify_all();
         }
-
+    
     private:
         std::queue<T> queue_;
         bool closed_;
