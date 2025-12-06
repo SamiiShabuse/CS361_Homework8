@@ -1,3 +1,14 @@
+/**
+ * @file src/ns1d0.cpp
+ * 
+ * @brief Implementation of NS1D0 sequence search functions.
+ * 
+ * @details This file contains the core logic for validating and searching NS1D0 sequences,
+ * including rule checks and worker thread functions. It implements the core algorithmic
+ * components required for the NS1D0 sequence search. It uses multiple threads to perform 
+ * the search concurrently.
+ */
+
 #include "ns1d0.h"
 #include <iostream>
 #include <algorithm>

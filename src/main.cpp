@@ -1,3 +1,18 @@
+/**
+ * @file src/main.cpp
+ * 
+ * @brief Main program for NS1D0 sequence search. 
+ * 
+ * @author Samii Shabuse <sus24@drexe.edu>
+ * @date December 6, 2025
+ * 
+ * @section Overview
+ * 
+ * This program searches for valid NS1D0 sequences based on the provided 
+ * parameters by the user. It uses multiple threads to perform the 
+ * search concurrently and outputs the results to a specified file.
+ */
+
 #include <iostream>
 #include <fstream>
 #include <thread>
