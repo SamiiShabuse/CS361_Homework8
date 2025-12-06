@@ -32,13 +32,26 @@ static int mod(int a, int n) {
 }
 
 /**
- *  Rule 1 (length) is just two general checks:
- *  prefix: length <= targetLength
- *  complete: length == targetLength
+ * @brief Check if the sequence length does not exceed the target length.
  * 
- * So we can keep that logic in is_valid_prefix and is_complete_valid_sequence for now
+ * @param seq The sequence of integers to check.
+ * @param cfg Configuration containing the target length.
+ * 
+ * @return true If the sequence length is valid.
+ * 
+ * @details This function checks if the length of the sequence does not exceed the target length
+ * specified in the configuration.
  */
-
+static bool rule1_length(const std::vector<int>& seq,
+                         const NS1D0Config& cfg) {
+    if (seq.empty()) {
+        return false;
+    }
+    if (static_cast<int>(seq.size()) > cfg.targetLength) {
+        return false;
+    }
+    return true;
+}
 
 
 /**
@@ -187,16 +200,10 @@ static bool rule6_differences_unique_pairs(const std::vector<int>& seq, const NS
  * @details This function checks if the given sequence prefix satisfies all the rules defined in the configuration.
  */
 bool is_valid_prefix(const std::vector<int>& seq, const NS1D0Config& cfg) {
-    if (seq.empty()) {
-        return false;
-    }
-
-    // Rule 1 (prefix length): cannot exceed target.
-    if (static_cast<int>(seq.size()) > cfg.targetLength) {
-        return false;
-    }
+    
 
     // Apply each rule / constraint:
+    if (!rule1_length(seq, cfg)) return false;
     if (!rule2_starts_with_zero(seq)) return false;
     if (!rule_unique_and_in_range(seq, cfg)) return false;
     if (!rule3_one_at_end(seq, cfg)) return false;
